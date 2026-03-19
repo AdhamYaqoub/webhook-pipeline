@@ -7,17 +7,25 @@ import type { Pipeline, Subscriber } from '../models';
 export async function createPipeline(input: {
   name: string;
   description?: string;
+  signingSecret?: string;
   actionType: Pipeline['actionType'];
   actionConfig?: unknown;
 }): Promise<Pipeline> {
   const sourceToken = randomUUID();
   const { rows } = await pool.query(
     `
-      INSERT INTO pipelines (name, description, source_token, action_type, action_config)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, name, description, source_token, action_type, action_config, created_at
+      INSERT INTO pipelines (name, description, source_token, signing_secret, action_type, action_config)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, description, source_token, signing_secret, action_type, action_config, created_at
     `,
-    [input.name, input.description ?? null, sourceToken, input.actionType, input.actionConfig ?? {}],
+    [
+      input.name,
+      input.description ?? null,
+      sourceToken,
+      input.signingSecret ?? null,
+      input.actionType,
+      input.actionConfig ?? {},
+    ],
   );
   const row = rows[0];
   return mapPipeline(row);
@@ -26,7 +34,7 @@ export async function createPipeline(input: {
 export async function listPipelines(): Promise<Pipeline[]> {
   const { rows } = await pool.query(
     `
-      SELECT id, name, description, source_token, action_type, action_config, created_at
+      SELECT id, name, description, source_token, signing_secret, action_type, action_config, created_at
       FROM pipelines
       ORDER BY created_at DESC
     `,
@@ -37,7 +45,7 @@ export async function listPipelines(): Promise<Pipeline[]> {
 export async function getPipeline(id: string): Promise<Pipeline | null> {
   const { rows } = await pool.query(
     `
-      SELECT id, name, description, source_token, action_type, action_config, created_at
+      SELECT id, name, description, source_token, signing_secret, action_type, action_config, created_at
       FROM pipelines
       WHERE id = $1
     `,
@@ -50,7 +58,7 @@ export async function getPipeline(id: string): Promise<Pipeline | null> {
 export async function getPipelineByToken(token: string): Promise<Pipeline | null> {
   const { rows } = await pool.query(
     `
-      SELECT id, name, description, source_token, action_type, action_config, created_at
+      SELECT id, name, description, source_token, signing_secret, action_type, action_config, created_at
       FROM pipelines
       WHERE source_token = $1
     `,
@@ -79,6 +87,7 @@ export async function updatePipeline(
     const next = {
       name: input.name ?? row.name,
       description: input.description ?? row.description,
+      signing_secret: input.signingSecret ?? row.signing_secret,
       action_type: input.actionType ?? row.action_type,
       action_config: input.actionConfig ?? row.action_config,
     };
@@ -87,12 +96,20 @@ export async function updatePipeline(
         UPDATE pipelines
         SET name = $2,
             description = $3,
-            action_type = $4,
-            action_config = $5
+            signing_secret = $4,
+            action_type = $5,
+            action_config = $6
         WHERE id = $1
-        RETURNING id, name, description, source_token, action_type, action_config, created_at
+        RETURNING id, name, description, source_token, signing_secret, action_type, action_config, created_at
       `,
-      [id, next.name, next.description, next.action_type, next.action_config],
+      [
+        id,
+        next.name,
+        next.description,
+        next.signing_secret,
+        next.action_type,
+        next.action_config,
+      ],
     );
     return mapPipeline(updated.rows[0]);
   });
@@ -154,6 +171,7 @@ function mapPipeline(row: any): Pipeline {
     name: row.name,
     description: row.description,
     sourceToken: row.source_token,
+    signingSecret: row.signing_secret,
     actionType: row.action_type,
     actionConfig: row.action_config,
     createdAt: row.created_at,

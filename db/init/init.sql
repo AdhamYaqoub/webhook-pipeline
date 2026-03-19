@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS pipelines (
   name TEXT NOT NULL,
   description TEXT,
   source_token TEXT NOT NULL UNIQUE,
+  signing_secret TEXT,
   action_type TEXT NOT NULL,
   action_config JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

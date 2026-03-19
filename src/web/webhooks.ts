@@ -2,6 +2,7 @@ import type { Express, Request, Response } from 'express';
 
 import { enqueueJob } from '../services/jobs';
 import { getPipelineByToken } from '../services/pipelines';
+import { verifyHmacSha256Signature } from '../services/signature';
 import { config } from '../config';
 
 export function registerWebhookRoutes(app: Express): void {
@@ -11,6 +12,20 @@ export function registerWebhookRoutes(app: Express): void {
     if (!pipeline) {
       res.status(404).json({ error: 'Pipeline not found' });
       return;
+    }
+
+    // Webhook signature verification (optional)
+    // If a signing secret is configured for the pipeline, require a valid HMAC-SHA256 signature.
+    if (pipeline.signingSecret) {
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      let signatureHeader = req.get('x-signature');
+      if (!signatureHeader) {
+        signatureHeader = req.get('x-hub-signature-256') || req.get('x-hub-signature');
+      }
+      if (!verifyHmacSha256Signature(pipeline.signingSecret, rawBody, signatureHeader)) {
+        res.status(401).json({ error: 'Invalid webhook signature' });
+        return;
+      }
     }
 
     const job = await enqueueJob({

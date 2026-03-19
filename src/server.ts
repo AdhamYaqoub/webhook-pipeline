@@ -7,7 +7,13 @@ import { registerJobRoutes } from './web/jobs';
 export function createServer() {
   const app = express();
 
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      // Store raw body for webhook signature verification.
+      (req as any).rawBody = buf;
+    },
+  }));
   app.use(morgan('dev'));
 
   app.get('/healthz', (_req, res) => {

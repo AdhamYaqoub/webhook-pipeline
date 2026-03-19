@@ -73,3 +73,6 @@ jobs:
       - name: Tests - processing template
         run: npm run test:processing:template
 
+      - name: Tests - signature verification
+        run: npm run test:signature
+

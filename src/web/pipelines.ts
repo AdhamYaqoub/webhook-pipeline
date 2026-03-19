@@ -15,6 +15,7 @@ import {
 const pipelineCreateSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
+  signingSecret: z.string().min(1).optional(),
   actionType: z.enum(['echo', 'extract_field', 'template']),
   actionConfig: z.any().optional(),
 });
