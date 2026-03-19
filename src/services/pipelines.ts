@@ -73,6 +73,7 @@ export async function updatePipeline(
   input: {
     name?: string;
     description?: string | null;
+    signingSecret?: string | null;
     actionType?: Pipeline['actionType'];
     actionConfig?: unknown;
   },
