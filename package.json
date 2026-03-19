@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint -c .eslintrc.cjs src --ext .ts,.tsx",
-    "test": "vitest run",
-    "test:processing:echo": "vitest run test/processing.echo.test.ts"
-
-  },
+  "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+  "worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
+  "build": "tsc -p tsconfig.json",
+  "start": "node dist/index.js",
+  "lint": "ESLINT_USE_FLAT_CONFIG=false eslint -c .eslintrc.cjs src --ext .ts,.tsx",
+  "test": "vitest run",
+  "test:processing:echo": "vitest run test/processing.echo.test.ts",
+  "test:processing:extract": "vitest run test/processing.extract.test.ts"
+},
   "dependencies": {
     "axios": "^1.13.6",
     "dotenv": "^16.4.5",
