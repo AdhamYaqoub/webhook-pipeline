@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webhook_pipeline
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/webhook_pipeline
+      WORKER_ENABLED: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..20}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "Postgres is up";
+              break;
+            fi
+            echo "Waiting for Postgres...";
+            sleep 3;
+          done
+
+      - name: Run DB migrations
+        run: |
+          PSQL="psql postgres://postgres:postgres@localhost:5432/webhook_pipeline"
+          $PSQL -f db/init/init.sql
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Tests - processing echo
+        run: npm run test:processing:echo
+
+      - name: Tests - processing extract_field
+        run: npm run test:processing:extract
+
+      - name: Tests - processing template
+        run: npm run test:processing:template
+

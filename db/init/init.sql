@@ -1,0 +1,53 @@
+-- Enable UUID generation
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Pipelines table
+CREATE TABLE IF NOT EXISTS pipelines (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT,
+  source_token TEXT NOT NULL UNIQUE,
+  action_type TEXT NOT NULL,
+  action_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Subscribers table
+CREATE TABLE IF NOT EXISTS subscribers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  pipeline_id UUID NOT NULL REFERENCES pipelines(id) ON DELETE CASCADE,
+  target_url TEXT NOT NULL,
+  headers JSONB NOT NULL DEFAULT '{}'::jsonb,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Jobs table
+CREATE TABLE IF NOT EXISTS jobs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  pipeline_id UUID REFERENCES pipelines(id),
+  payload JSONB,
+  status TEXT,
+  attempts INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  max_attempts INT DEFAULT 5,
+  next_run_at TIMESTAMPTZ,
+  last_error TEXT,
+  completed_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_jobs_status_next_run
+  ON jobs (status, next_run_at);
+
+-- Delivery attempts table
+CREATE TABLE IF NOT EXISTS delivery_attempts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  subscriber_id UUID NOT NULL REFERENCES subscribers(id) ON DELETE CASCADE,
+  status TEXT NOT NULL,
+  http_status INT,
+  response_body TEXT,
+  error TEXT,
+  attempt_number INT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

@@ -1,0 +1,43 @@
+services:
+  api:
+    build: .
+    container_name: webhook_api
+    restart: always
+    ports:
+      - "3000:3000"
+    command: ["sh", "-c", "./wait-for-it.sh postgres:5432 -- npx ts-node-dev --respawn --transpile-only src/index.ts"]
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: webhook_pipeline
+    depends_on:
+      - postgres
+
+  worker:
+    build: .
+    container_name: webhook_worker
+    restart: always
+    command: ["sh", "-c", "./wait-for-it.sh postgres:5432 -- npx ts-node-dev --respawn --transpile-only src/worker.ts"]
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: webhook_pipeline
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    container_name: webhook_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: webhook_pipeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
