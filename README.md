@@ -116,7 +116,10 @@ Each pipeline has a `sourceToken` field which is used to construct the webhook U
   - Body: arbitrary JSON payload.
   - Behavior:
     - Looks up pipeline by `source_token`.
-    - If the pipeline defines a `signingSecret`, expects header `X-Signature: sha256=<hex>` (HMAC SHA256 of the raw request body).
+    - Expects one of the following headers (the signing secret is either the pipeline `signingSecret` or the pipeline `sourceToken`):
+      - `X-Signature: sha256=<hex>`
+      - `X-Hub-Signature-256: sha256=<hex>`
+      - `X-Webhook-Signature: sha256=<hex>`
     - Enqueues a job in `jobs` with status `pending`.
     - Returns:
       - `jobId`, `pipelineId`, `status`.
