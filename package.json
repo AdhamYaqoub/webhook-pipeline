@@ -12,7 +12,8 @@
     "test:processing:echo": "vitest run test/processing.echo.test.ts",
     "test:processing:extract": "vitest run test/processing.extract.test.ts",
     "test:processing:template": "vitest run test/processing.template.test.ts",
-    "test:signature": "vitest run test/signature.test.ts"
+    "test:signature": "vitest run test/signature.test.ts",
+    "test:rate-limit": "vitest run test/rateLimit.test.ts"
   },
   "dependencies": {
     "axios": "^1.13.6",

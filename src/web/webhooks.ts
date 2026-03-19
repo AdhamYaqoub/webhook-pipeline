@@ -3,6 +3,7 @@ import type { Express, Request, Response } from 'express';
 import { enqueueJob } from '../services/jobs';
 import { getPipelineByToken } from '../services/pipelines';
 import { verifyHmacSha256Signature } from '../services/signature';
+import { shouldRateLimit } from '../services/rateLimit';
 import { config } from '../config';
 
 export function registerWebhookRoutes(app: Express): void {
@@ -14,18 +15,26 @@ export function registerWebhookRoutes(app: Express): void {
       return;
     }
 
-    // Webhook signature verification (optional)
-    // If a signing secret is configured for the pipeline, require a valid HMAC-SHA256 signature.
-    if (pipeline.signingSecret) {
-      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
-      let signatureHeader = req.get('x-signature');
-      if (!signatureHeader) {
-        signatureHeader = req.get('x-hub-signature-256') || req.get('x-hub-signature');
-      }
-      if (!verifyHmacSha256Signature(pipeline.signingSecret, rawBody, signatureHeader)) {
-        res.status(401).json({ error: 'Invalid webhook signature' });
-        return;
-      }
+    // Webhook signature verification
+    // Uses `signingSecret` if configured, otherwise falls back to the pipeline token.
+    // If signature is missing or invalid, reject the request.
+    const secret = pipeline.signingSecret ?? pipeline.sourceToken;
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const signatureHeader =
+      req.get('x-webhook-signature') ||
+      req.get('x-signature') ||
+      req.get('x-hub-signature-256') ||
+      req.get('x-hub-signature');
+
+    if (!verifyHmacSha256Signature(secret, rawBody, signatureHeader)) {
+      res.status(401).json({ error: 'Invalid webhook signature' });
+      return;
+    }
+
+    // Rate limiting (per-pipeline)
+    if (shouldRateLimit(pipeline.id)) {
+      res.status(429).json({ error: 'Rate limit exceeded' });
+      return;
     }
 
     const job = await enqueueJob({
