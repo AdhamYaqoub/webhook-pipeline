@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   build-and-test:
@@ -67,4 +67,9 @@ jobs:
       - name: Tests - processing echo
         run: npm run test:processing:echo
 
+      - name: Tests - processing extract
+        run: npm run test:processing:extract
+
+      - name: Tests - processing template
+        run: npm run test:processing:template
 
