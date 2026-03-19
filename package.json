@@ -7,7 +7,7 @@
     "worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "lint": "eslint -c .eslintrc.cjs \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint -c .eslintrc.cjs src --ext .ts,.tsx",
     "test": "vitest run",
     "test:processing:echo": "vitest run test/processing.echo.test.ts"
 
