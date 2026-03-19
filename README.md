@@ -89,6 +89,7 @@ Base URL (default): `http://localhost:3000`
   - Body:
     - `name` (string, required)
     - `description` (string, optional)
+    - `signingSecret` (string, optional) - if provided, incoming webhooks must include `X-Signature` (HMAC SHA256)
     - `actionType` (`"echo" | "extract_field" | "template"`)
     - `actionConfig` (object, optional; depends on `actionType`)
 - **GET** `/pipelines/:id` – get a single pipeline.
@@ -115,9 +116,26 @@ Each pipeline has a `sourceToken` field which is used to construct the webhook U
   - Body: arbitrary JSON payload.
   - Behavior:
     - Looks up pipeline by `source_token`.
+    - If the pipeline defines a `signingSecret`, expects header `X-Signature: sha256=<hex>` (HMAC SHA256 of the raw request body).
     - Enqueues a job in `jobs` with status `pending`.
     - Returns:
       - `jobId`, `pipelineId`, `status`.
+
+##### Signature Example
+
+If a pipeline has a signing secret (e.g. `my-secret`), compute the signature from the raw JSON string:
+
+```bash
+payload='{"foo":"bar"}'
+secret='my-secret'
+signature=$(printf "%s" "$payload" | openssl dgst -sha256 -hmac "$secret" | cut -d" " -f2)
+
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Signature: sha256=$signature" \
+  -d "$payload" \
+  http://localhost:3000/hooks/<token>
+```
 
 The actual processing and delivery happens in the worker process.
 
@@ -162,7 +180,10 @@ Workflow: `.github/workflows/ci.yml`
   - `npm install`
   - `npm run lint`
   - `npm run build`
-  - `npm test`
+  - `npm run test:processing:echo`
+  - `npm run test:processing:extract`
+  - `npm run test:processing:template`
+  - `npm run test:signature`
 
 You can add more tests with **Vitest** under a `test/` directory and they will be picked up automatically.
 

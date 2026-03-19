@@ -36,7 +36,7 @@ async function handleJob(job: Job): Promise<void> {
 
   const { rows: pipelineRows } = await pool.query(
     `
-      SELECT id, name, description, source_token, action_type, action_config, created_at
+      SELECT id, name, description, source_token, signing_secret, action_type, action_config, created_at
       FROM pipelines
       WHERE id = $1
     `,
@@ -56,6 +56,7 @@ async function handleJob(job: Job): Promise<void> {
     name: pipelineRows[0].name,
     description: pipelineRows[0].description,
     sourceToken: pipelineRows[0].source_token,
+    signingSecret: pipelineRows[0].signing_secret,
     actionType: pipelineRows[0].action_type,
     actionConfig: pipelineRows[0].action_config,
     createdAt: pipelineRows[0].created_at,
