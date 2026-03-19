@@ -76,3 +76,6 @@ jobs:
       - name: Tests - signature verification
         run: npm run test:signature
 
+      - name: Tests - rate limiting
+        run: npm run test:rate-limit
+

@@ -3,6 +3,7 @@ import type { Express, Request, Response } from 'express';
 import { enqueueJob } from '../services/jobs';
 import { getPipelineByToken } from '../services/pipelines';
 import { verifyHmacSha256Signature } from '../services/signature';
+import { shouldRateLimit } from '../services/rateLimit';
 import { config } from '../config';
 
 export function registerWebhookRoutes(app: Express): void {
@@ -27,6 +28,12 @@ export function registerWebhookRoutes(app: Express): void {
 
     if (!verifyHmacSha256Signature(secret, rawBody, signatureHeader)) {
       res.status(401).json({ error: 'Invalid webhook signature' });
+      return;
+    }
+
+    // Rate limiting (per-pipeline)
+    if (shouldRateLimit(pipeline.id)) {
+      res.status(429).json({ error: 'Rate limit exceeded' });
       return;
     }
 

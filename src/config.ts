@@ -9,6 +9,11 @@ export interface AppConfig {
     batchSize: number;
     maxAttempts: number;
   };
+  rateLimit: {
+    enabled: boolean;
+    requests: number;
+    windowSeconds: number;
+  };
 }
 
 export const config: AppConfig = {
@@ -23,6 +28,11 @@ export const config: AppConfig = {
     pollIntervalMs: Number(process.env.WORKER_POLL_INTERVAL_MS) || 5000,
     batchSize: Number(process.env.WORKER_BATCH_SIZE) || 10,
     maxAttempts: Number(process.env.WORKER_MAX_ATTEMPTS) || 5,
+  },
+  rateLimit: {
+    enabled: process.env.RATE_LIMIT_ENABLED !== 'false',
+    requests: Number(process.env.RATE_LIMIT_REQUESTS) || 60,
+    windowSeconds: Number(process.env.RATE_LIMIT_WINDOW_SECONDS) || 60,
   },
 };
 

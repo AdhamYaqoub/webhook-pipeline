@@ -120,6 +120,7 @@ Each pipeline has a `sourceToken` field which is used to construct the webhook U
       - `X-Signature: sha256=<hex>`
       - `X-Hub-Signature-256: sha256=<hex>`
       - `X-Webhook-Signature: sha256=<hex>`
+    - If the request exceeds the configured rate limit it responds with 429 `Rate limit exceeded`.
     - Enqueues a job in `jobs` with status `pending`.
     - Returns:
       - `jobId`, `pipelineId`, `status`.
@@ -172,6 +173,7 @@ File: `src/worker.ts`
 - **Idempotent delivery recording**: Each delivery attempt is stored with timestamp and attempt number, making debugging easy.
 - **Configuration via env**:
   - `DATABASE_URL`, `PORT`, and worker settings (`WORKER_ENABLED`, poll interval, batch size, max attempts).
+  - `RATE_LIMIT_ENABLED`, `RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW_SECONDS` (defaults to 60 req per 60 seconds).
 
 ### GitHub Actions CI
 
@@ -187,14 +189,7 @@ Workflow: `.github/workflows/ci.yml`
   - `npm run test:processing:extract`
   - `npm run test:processing:template`
   - `npm run test:signature`
-
-You can add more tests with **Vitest** under a `test/` directory and they will be picked up automatically.
-
-### How to Demo
-
-Suggested live demo flow:
-
-1. **Create a pipeline** using `curl` or Postman with `actionType = "template"` and a template like `"User {{ payload.user.email }} signed up"`.
+    - `npm run test:rate-limit`
 2. **Add a subscriber** that points to a simple request bin or a local echo server.
 3. **Trigger the webhook** by `POST`ing JSON to `/hooks/:token`.
 4. Show:
