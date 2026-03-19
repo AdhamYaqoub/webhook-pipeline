@@ -7,11 +7,10 @@
     "worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint -c .eslintrc.cjs src --ext .ts,.tsx",
     "test": "vitest run",
-    "test:processing:echo": "vitest run test/processing.echo.test.ts",
-    "test:processing:extract": "vitest run test/processing.extract.test.ts",
-    "test:processing:template": "vitest run test/processing.template.test.ts"
+    "test:processing:echo": "vitest run test/processing.echo.test.ts"
+
   },
   "dependencies": {
     "axios": "^1.13.6",

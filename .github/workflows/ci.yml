@@ -67,9 +67,4 @@ jobs:
       - name: Tests - processing echo
         run: npm run test:processing:echo
 
-      - name: Tests - processing extract_field
-        run: npm run test:processing:extract
-
-      - name: Tests - processing template
-        run: npm run test:processing:template
 
