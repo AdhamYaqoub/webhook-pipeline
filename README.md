@@ -48,6 +48,7 @@ docker compose up --build
 
 2. Services:
    - API: `http://localhost:3000`
+   - Dashboard UI: `http://localhost:3000/` (single-page UI for pipelines + jobs)
    - Postgres: `localhost:5432` (user `postgres`, password `postgres`, db `webhook_pipeline`)
 
 The database schema is created automatically from `db/init/init.sql` when Postgres starts.

@@ -5,7 +5,6 @@ export interface Pipeline {
   name: string;
   description?: string | null;
   sourceToken: string;
-  /** Optional secret used to verify incoming webhook payloads via HMAC SHA256. */
   signingSecret?: string | null;
   actionType: ProcessingActionType;
   actionConfig: unknown;
