@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webhook Pipeline Dashboard</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f4f5f7;
+      }
+      header {
+        background: #1f2937;
+        color: white;
+        padding: 1rem 1.5rem;
+        font-size: 1.25rem;
+      }
+      main {
+        max-width: 1024px;
+        margin: 1.5rem auto;
+        padding: 0 1rem;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      .flex {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 0.5rem 0.75rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+      }
+      button.secondary {
+        background: #6b7280;
+      }
+      button.danger {
+        background: #dc2626;
+      }
+      input, select, textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+        font-weight: 600;
+      }
+      pre {
+        background: #111827;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow: auto;
+      }
+      .hidden { display: none; }
+      .pill {
+        display: inline-flex;
+        gap: 0.25rem;
+        align-items: center;
+        background: #e0e7ff;
+        padding: 0.25rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+      .pill.success { background: #d1fae5; color: #065f46; }
+      .pill.warn { background: #fef9c3; color: #78350f; }
+      .pill.error { background: #fee2e2; color: #991b1b; }
+    </style>
+  </head>
+  <body>
+    <header>Webhook Pipeline UI</header>
+    <main>
+      <section class="card">
+        <h2>Create pipeline</h2>
+        <form id="createPipelineForm">
+          <label>
+            Name
+            <input name="name" required placeholder="My pipeline" />
+          </label>
+
+          <label>
+            Action type
+            <select name="actionType" required>
+              <option value="echo">echo</option>
+              <option value="extract_field">extract_field</option>
+              <option value="template">template</option>
+            </select>
+          </label>
+
+          <label>
+            Action config (JSON)
+            <textarea
+              name="actionConfig"
+              rows="3"
+              placeholder='{}'
+            ></textarea>
+          </label>
+
+          <label>
+            Signing secret (optional)
+            <input name="signingSecret" placeholder="leave empty to use token" />
+          </label>
+
+          <button type="submit">Create pipeline</button>
+          <span id="createPipelineStatus"></span>
+        </form>
+      </section>
+
+      <section class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <h2>Pipelines</h2>
+          <button id="refreshPipelines">Refresh</button>
+        </div>
+        <div id="pipelines"></div>
+      </section>
+
+      <section class="card hidden" id="pipelineDetails">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <h2>Pipeline details</h2>
+          <button class="secondary" id="closeDetails">Close</button>
+        </div>
+        <div id="detailsContent"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
